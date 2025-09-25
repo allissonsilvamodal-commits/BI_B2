@@ -1,15 +1,11 @@
 import os
 import streamlit as st
-from google.oauth2.service_account import Credentials
 import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as se
 import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
 import re
 from datetime import datetime
-import openai
 
 st.set_page_config(layout="wide")  # Layout amplo
 
@@ -734,5 +730,6 @@ try:
 except Exception as e:
         st.error(f"Ocorreu um erro geral na aplicação: {e}")
         st.stop() # Stop the app execution on a critical error
+
 
 
