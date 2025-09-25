@@ -2,7 +2,6 @@ import os
 import streamlit as st
 import pandas as pd
 import numpy as np
-import plotly.express as px
 import plotly.graph_objects as go
 import re
 from datetime import datetime
@@ -730,6 +729,7 @@ try:
 except Exception as e:
         st.error(f"Ocorreu um erro geral na aplicação: {e}")
         st.stop() # Stop the app execution on a critical error
+
 
 
 
