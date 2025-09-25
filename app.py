@@ -1,8 +1,7 @@
-import os # Import os for environment variables
+import os
 import streamlit as st
-from google.colab import auth
 import gspread
-from google.auth import default
+from google.oauth2.service_account import Credentials
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as se
@@ -13,35 +12,19 @@ import re
 from datetime import datetime
 import openai
 
+st.set_page_config(layout="wide")  # Layout amplo
 
-st.set_page_config(layout="wide") # Set wide layout for better use of space
-
-# Configure OpenAI API key and initialize client
-# Make OpenAI client initialization conditional
-openai_api_key = os.getenv("OPENAI_API_KEY") # Try to get the key from environment variables first
-if openai_api_key is None:
-    try:
-        # If not in environment, try to get from Streamlit secrets
-        # This might still raise an error if secrets.toml is missing/empty,
-        # but the outer try-except will catch it.
-        openai_api_key = st.secrets.get("OPENAI_API_KEY") # Use .get for safer access
-    except Exception:
-        openai_api_key = None # Set to None if not found in secrets either
-
+# --- OpenAI ---
+openai_api_key = os.getenv("OPENAI_API_KEY") or st.secrets.get("OPENAI_API_KEY", None)
 if openai_api_key:
     openai.api_key = openai_api_key
     client = openai.OpenAI(api_key=openai.api_key)
     st.sidebar.success("OpenAI client initialized.")
 else:
     st.sidebar.warning("OpenAI API key not found. OpenAI features will be disabled.")
-    client = None # Set client to None if key is not available
+    client = None
 
-# --- Google Sheets Authentication and Client Initialization ---
-# Perform authentication outside the cached function
-
-from google.oauth2.service_account import Credentials
-import gspread
-
+# --- Google Sheets ---
 try:
     google_creds = {
         key: (value.replace("\\n", "\n") if key == "private_key" else value)
@@ -53,7 +36,6 @@ try:
 except Exception as e:
     st.sidebar.error(f"Erro na autenticação do Google Sheets: {e}")
     gc = None
-
 
 @st.cache_data # Cache the data loading for performance (removed allow_output_mutation=True)
 def load_data(_gspread_client): # Added underscore to prevent hashing
@@ -753,3 +735,4 @@ try:
 except Exception as e:
         st.error(f"Ocorreu um erro geral na aplicação: {e}")
         st.stop() # Stop the app execution on a critical error
+
