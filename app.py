@@ -1,6 +1,6 @@
 import os
 import streamlit as st
-from oauth2client.service_account import ServiceAccountCredentials
+from google.oauth2.service_account import Credentials
 import gspread
 from datetime import datetime
 import pandas as pd
@@ -743,4 +743,5 @@ try:
 except Exception as e:
         st.error(f"Ocorreu um erro geral na aplicação: {e}")
         st.stop() # Stop the app execution on a critical error
+
 
