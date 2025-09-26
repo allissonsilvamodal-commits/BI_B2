@@ -1,34 +1,45 @@
 import os
 import streamlit as st
-import pandas as pd
-import numpy as np
-import re
+from oauth2client.service_account import ServiceAccountCredentials
+import gspread
 from datetime import datetime
-
-st.set_page_config(layout="wide")  # Layout amplo
-
-# --- OpenAI ---
-openai_api_key = os.getenv("OPENAI_API_KEY") or st.secrets.get("OPENAI_API_KEY", None)
-if openai_api_key:
-    openai.api_key = openai_api_key
-    client = openai.OpenAI(api_key=openai.api_key)
-    st.sidebar.success("OpenAI client initialized.")
-else:
-    st.sidebar.warning("OpenAI API key not found. OpenAI features will be disabled.")
-    client = None
+import pandas as pd
+import re
+import plotly.express as px
+import plotly.graph_objects as go
 
 # --- Google Sheets ---
 try:
-    google_creds = {
-        key: (value.replace("\\n", "\n") if key == "private_key" else value)
-        for key, value in st.secrets["google"].items()
-    }
-    creds = Credentials.from_service_account_info(google_creds)
-    gc = gspread.authorize(creds)
-    st.sidebar.success("Google Sheets authenticated via secrets.")
+    # Obtenha credenciais direto do st.secrets
+    creds = st.secrets["connections"]["gsheets"]
+    
+    scope = ["https://spreadsheets.google.com/feeds",
+             "https://www.googleapis.com/auth/drive"]
+    
+    # Crie as credenciais e autorize o cliente gspread
+    credentials = ServiceAccountCredentials.from_json_keyfile_dict(creds, scope)
+    gc = gspread.authorize(credentials)
+    
+    # Abra a planilha e a primeira aba
+    spreadsheet = gc.open_by_url(creds["spreadsheet"])
+    worksheet = spreadsheet.get_worksheet(0)  # índice da aba
+
 except Exception as e:
-    st.sidebar.error(f"Erro na autenticação do Google Sheets: {e}")
+    st.error(f"Erro na autenticação do Google Sheets: {e}")
     gc = None
+
+# --- Configuração da página ---
+st.set_page_config(layout="wide", page_title="Painel de BI Operacional")
+
+# --- OpenAI ---
+openai_api_key = os.getenv("OPENAI_API_KEY") or st.secrets["openai"]["api_key"]
+
+if openai_api_key:
+    import openai
+    openai.api_key = openai_api_key
+    client = openai.OpenAI(api_key=openai_api_key)
+else:
+    st.warning("⚠️ OpenAI API key not found. OpenAI features will be disabled.")
 
 @st.cache_data # Cache the data loading for performance (removed allow_output_mutation=True)
 def load_data(_gspread_client): # Added underscore to prevent hashing
@@ -142,8 +153,12 @@ if 'authenticated' not in st.session_state:
     st.session_state['authenticated'] = False
 
 # Placeholder credentials (replace with secure storage in production)
-VALID_USERNAME = st.secrets["login"]["username"]
-VALID_PASSWORD = st.secrets["login"]["password"]
+import streamlit as st
+import os
+
+# Tenta pegar do st.secrets; se não existir, pega do ambiente
+VALID_USERNAME = st.secrets.get("login", {}).get("username") or os.getenv("VALID_USERNAME")
+VALID_PASSWORD = st.secrets.get("login", {}).get("password") or os.getenv("VALID_PASSWORD")
 
 def authenticate(username, password):
     """Simple function to check placeholder credentials."""
@@ -728,8 +743,4 @@ try:
 except Exception as e:
         st.error(f"Ocorreu um erro geral na aplicação: {e}")
         st.stop() # Stop the app execution on a critical error
-
-
-
-
 
