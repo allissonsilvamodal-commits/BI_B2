@@ -17,7 +17,7 @@ try:
              "https://www.googleapis.com/auth/drive"]
     
     # Crie as credenciais e autorize o cliente gspread
-    credentials = ServiceAccountCredentials.from_json_keyfile_dict(creds, scope)
+    credentials = Credentials.from_service_account_info(creds, scopes=scope)
     gc = gspread.authorize(credentials)
     
     # Abra a planilha e a primeira aba
@@ -743,5 +743,6 @@ try:
 except Exception as e:
         st.error(f"Ocorreu um erro geral na aplicação: {e}")
         st.stop() # Stop the app execution on a critical error
+
 
 
