@@ -1,6 +1,6 @@
 import os
 import streamlit as st
-from google.oauth2.service_account import Credentials
+from oauth2client.service_account import ServiceAccountCredentials
 import gspread
 from datetime import datetime
 import pandas as pd
@@ -17,12 +17,13 @@ try:
              "https://www.googleapis.com/auth/drive"]
     
     # Crie as credenciais e autorize o cliente gspread
-    credentials = Credentials.from_service_account_info(creds, scopes=scope)
+    credentials = ServiceAccountCredentials.from_json_keyfile_dict(creds, scope)
     gc = gspread.authorize(credentials)
     
     # Abra a planilha e a primeira aba
     spreadsheet = gc.open_by_url(creds["spreadsheet"])
     worksheet = spreadsheet.get_worksheet(0)  # índice da aba
+
 
 except Exception as e:
     st.error(f"Erro na autenticação do Google Sheets: {e}")
@@ -743,6 +744,7 @@ try:
 except Exception as e:
         st.error(f"Ocorreu um erro geral na aplicação: {e}")
         st.stop() # Stop the app execution on a critical error
+
 
 
 
